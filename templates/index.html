@@ -60,7 +60,9 @@
                             <th class="px-4 py-2 text-left sticky-col artist-col w-[150px]">Artist</th>
                             {% for playlist in playlists %}
                             <th class="px-2 py-2 text-center w-[100px] max-w-[100px]">
-                                <div class="truncate" title="{{ playlist.name }}">{{ playlist.name }}</div>
+                                <div class="truncate" title="{{ playlist.name }}">
+                                    {% if loop.index <= 9 %}{{ loop.index }}: {% endif %}{{ playlist.name }}
+                                </div>
                             </th>
                             {% endfor %}
                         </tr>
