@@ -22,6 +22,14 @@
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">Spotify Playlist Manager</h1>
             <div class="flex items-center space-x-4">
+                
+                <button 
+                onclick="refreshData()"
+                class="px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800"
+                id="refresh-button"
+                >
+                    Refresh Data
+                </button>
                 <button 
                     onclick="toggleTheme()" 
                     class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -216,6 +224,37 @@
         alert('Make sure Spotify is open and playing somewhere');
     }
 }
+
+
+
+async function refreshData() {
+    const button = document.getElementById('refresh-button');
+    button.disabled = true;
+    button.textContent = 'Refreshing...';
+    
+    try {
+        const response = await fetch('/api/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to refresh data');
+        }
+        
+        // Reload the page to show new data
+        window.location.reload();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to refresh data. Please try again.');
+        button.textContent = 'Refresh Data';
+        button.disabled = false;
+    }
+}
+
     </script>
 </body>
 </html>

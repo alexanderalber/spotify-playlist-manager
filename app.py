@@ -5,6 +5,7 @@ from pathlib import Path
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import os
+from read_from_spotify import SpotifyAnalyzer
 import envvars
 
 app = Flask(__name__)
@@ -277,6 +278,37 @@ def mark_played():
     except Exception as e:
         print(f"Error marking song as played: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
+# Neue Route hinzufügen:
+@app.route('/api/refresh', methods=['POST'])
+def refresh_data():
+    """Refresh all data from Spotify."""
+    if not session.get('token_info'):
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        # Initialize analyzer with current credentials
+        analyzer = SpotifyAnalyzer(
+            client_id=envvars.client_id,
+            client_secret=envvars.client_secret,
+            redirect_uri="http://localhost:8888/callback"
+        )
+        
+        # Perform cleanup first
+        analyzer.cleanup_deleted_items()
+        
+        # Then fetch fresh data
+        analyzer.fetch_all_liked_songs()
+        analyzer.fetch_all_playlists()
+        
+        return jsonify({'status': 'success'})
+        
+    except Exception as e:
+        print(f"Error in refresh: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8888)

@@ -219,6 +219,70 @@ class SpotifyAnalyzer:
             
             return result
 
+
+
+    # In read_from_spotify.py die cleanup Methode hinzufügen:
+    def cleanup_deleted_items(self):
+        """Remove items that no longer exist in Spotify."""
+        print("Starting cleanup of deleted items...")
+        
+        # Get current state from Spotify
+        current_songs = set()
+        results = self.sp.current_user_saved_tracks()
+        while results:
+            for item in results['items']:
+                current_songs.add(item['track']['id'])
+            if results['next']:
+                results = self.sp.next(results)
+            else:
+                results = None
+        
+        current_playlists = {
+            p['id'] 
+            for p in self.sp.current_user_playlists()['items']
+        }
+        
+        with sqlite3.connect(self.db_path) as conn:
+            # Get counts before cleanup
+            before_songs = conn.execute("SELECT COUNT(*) FROM liked_songs").fetchone()[0]
+            before_playlists = conn.execute("SELECT COUNT(*) FROM playlists").fetchone()[0]
+            before_memberships = conn.execute("SELECT COUNT(*) FROM playlist_songs").fetchone()[0]
+            
+            # Remove deleted songs
+            if current_songs:
+                placeholders = ','.join('?' * len(current_songs))
+                conn.execute(f"""
+                    DELETE FROM liked_songs 
+                    WHERE id NOT IN ({placeholders})
+                """, list(current_songs))
+            
+            # Remove deleted playlists
+            if current_playlists:
+                placeholders = ','.join('?' * len(current_playlists))
+                conn.execute(f"""
+                    DELETE FROM playlists 
+                    WHERE id NOT IN ({placeholders})
+                """, list(current_playlists))
+            
+            # Cleanup orphaned playlist_songs entries
+            conn.execute("""
+                DELETE FROM playlist_songs
+                WHERE song_id NOT IN (SELECT id FROM liked_songs)
+                OR playlist_id NOT IN (SELECT id FROM playlists)
+            """)
+            
+            # Get counts after cleanup
+            after_songs = conn.execute("SELECT COUNT(*) FROM liked_songs").fetchone()[0]
+            after_playlists = conn.execute("SELECT COUNT(*) FROM playlists").fetchone()[0]
+            after_memberships = conn.execute("SELECT COUNT(*) FROM playlist_songs").fetchone()[0]
+            
+            print(f"\nCleanup summary:")
+            print(f"- Songs: {before_songs} -> {after_songs} (-{before_songs - after_songs})")
+            print(f"- Playlists: {before_playlists} -> {after_playlists} (-{before_playlists - after_playlists})")
+            print(f"- Memberships: {before_memberships} -> {after_memberships} (-{before_memberships - after_memberships})")
+
+
+
 def main():
     CLIENT_ID = envvars.client_id
     CLIENT_SECRET = envvars.client_secret
