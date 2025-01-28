@@ -59,7 +59,8 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
                         {% for song in songs %}
-                        <tr id="song-row-{{ song.id }}" class="border-t">
+                        <tr id="song-row-{{ song.id }}" 
+                            class="border-t {% if song_was_played(song.id) %}played{% endif %}">
                             <td class="px-4 py-2 text-center sticky-col play-col">
                                 <button 
                                     class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -152,53 +153,69 @@
         let currentlyPlaying = null;
 
         async function playSong(songId) {
-            try {
-                // if clicking the same song that's playing, stop it
-                if (currentlyPlaying === songId) {
-                    const response = await fetch('/api/stop', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Failed to stop playback');
-                    }
-                    
-                    // Remove active class
-                    document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-                    currentlyPlaying = null;
-                    return;
+    try {
+        // if clicking the same song that's playing, stop it
+        if (currentlyPlaying === songId) {
+            const response = await fetch('/api/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 }
-                
-                // otherwise play the new song
-                const response = await fetch('/api/play', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ song_id: songId })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to start playback');
-                }
-
-                // Remove active class from previous song
-                if (currentlyPlaying) {
-                    document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-                }
-
-                // Add active class to new song
-                document.getElementById(`song-row-${songId}`).classList.add('active-song');
-                currentlyPlaying = songId;
-
-            } catch (error) {
-                console.error('Error playing song:', error);
-                alert('Make sure Spotify is open and playing somewhere');
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to stop playback');
             }
+            
+            // Remove active class
+            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+            currentlyPlaying = null;
+            return;
         }
+        
+        // otherwise play the new song
+        const response = await fetch('/api/play', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ song_id: songId })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to start playback');
+        }
+
+        // Remove active class from previous song
+        if (currentlyPlaying) {
+            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+        }
+
+        // Add active class to new song
+        document.getElementById(`song-row-${songId}`).classList.add('active-song');
+        currentlyPlaying = songId;
+
+        // Mark song as played in database
+        const playedResponse = await fetch('/api/mark_played', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ song_id: songId })
+        });
+        
+        if (!playedResponse.ok) {
+            console.error('Failed to mark song as played');
+        }
+        
+        // Add played class
+        document.getElementById(`song-row-${songId}`).classList.add('played');
+
+    } catch (error) {
+        console.error('Error playing song:', error);
+        alert('Make sure Spotify is open and playing somewhere');
+    }
+}
     </script>
 </body>
 </html>

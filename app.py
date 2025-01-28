@@ -8,10 +8,8 @@ import os
 import envvars
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # needed for session
-app.config['TEMPLATES_AUTO_RELOAD'] = True  # add this line
+app.secret_key = os.urandom(24) 
 
-# Configure Spotify auth once
 auth_manager = SpotifyOAuth(
     client_id=envvars.client_id,
     client_secret=envvars.client_secret,
@@ -95,11 +93,21 @@ def index():
         # Get fresh token
         token = auth_manager.get_cached_token()['access_token']
         
+
+
+        played_songs = conn.execute("""
+            SELECT DISTINCT song_id 
+            FROM played_history
+        """).fetchall()
+        played_songs_set = {s['song_id'] for s in played_songs}
+
+
         return render_template(
             'index.html',
             songs=songs_list,
             playlists=owned_playlists,
             song_in_playlist=lambda s, p: (s, p) in memberships_set,
+            song_was_played=lambda s: s in played_songs_set,
             spotify_token=token
         )
         
@@ -243,6 +251,31 @@ def play_song():
         
     except Exception as e:
         print(f"Error in play_song: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/mark_played', methods=['POST'])
+def mark_played():
+    """Mark a song as played."""
+    if not session.get('token_info'):
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        data = request.json
+        song_id = data['song_id']
+        
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO played_history (song_id)
+            VALUES (?)
+        """, (song_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'status': 'success'})
+        
+    except Exception as e:
+        print(f"Error marking song as played: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

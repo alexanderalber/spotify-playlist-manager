@@ -45,6 +45,13 @@ class SpotifyAnalyzer:
                     FOREIGN KEY(song_id) REFERENCES liked_songs(id),
                     PRIMARY KEY(playlist_id, song_id)
                 );
+
+                CREATE TABLE IF NOT EXISTS played_history (
+                    song_id TEXT,
+                    played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(song_id) REFERENCES liked_songs(id),
+                    PRIMARY KEY(song_id, played_at)
+                );
             """)
     
     def fetch_all_liked_songs(self):

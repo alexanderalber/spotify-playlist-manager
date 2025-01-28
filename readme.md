@@ -26,7 +26,7 @@ A web application to efficiently manage your Spotify liked songs across multiple
 5. Copy your Client ID and Client Secret 
 6. In the App settings, activate Web API and Web Playback SDK
 
-## Setup
+## Python Setup
 
 1. Clone the repository:
 ```bash
@@ -45,31 +45,32 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Configure your Spotify credentials:
+4. Enter your Spotify credentials:
    - Create a file named `envvars.py`
-   - Add your Spotify API credentials (see "Spotify Setup" below):
+   - Add your Spotify API credentials:
    ```python
    client_id = "your_client_id_here"
    client_secret = "your_client_secret_here"
    ```
    - Keep this file secure and never commit it to version control
 
-5. Initialize the database (Spotify will ask for permission):
+5. Initialize the database (your browser might open and Spotify might ask for permission):
 ```bash
 python read_from_spotify.py
 ```
 
 ## Usage
 
-6. Open the native Spotify app on the device of your choice. This app does not actually play music by itself, it will only trigger the actual Spotify app. 
+1. Make sure that Spotify is open and running somwhere. This app does not actually play music by itself, it will instead trigger playback on the actual Spotify app. 
 
-7. Run the application:
+2. Run the application (your browser might open and Spotify might ask for permission):
 ```bash
 python app.py
 ```
 
-8. Open your browser and navigate to `http://localhost:8888`
+3. Open your browser and navigate to `http://localhost:8888`
 
+4. Click on cells to toggle playlist membership, click on play to trigger playback, click again to stop playback. 
 
 
 ## Project Structure
