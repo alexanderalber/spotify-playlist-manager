@@ -376,6 +376,47 @@ async function refreshData() {
     }
 }
 
+async function seekPlayback(ms) {
+    if (!currentlyPlaying) return;
+    
+    try {
+        const response = await fetch('/api/seek', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ position_ms: ms })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to seek');
+        }
+        
+    } catch (error) {
+        console.error('Error seeking:', error);
+    }
+}
+
+
+// Update keyboard event handler
+document.addEventListener('keydown', async (e) => {
+    // ... existing code ...
+    
+    switch (e.key) {
+        case 'ArrowRight':
+            e.preventDefault();
+            await seekPlayback(20000);  // 20 seconds forward
+            break;
+            
+        case 'ArrowLeft':
+            e.preventDefault();
+            await seekPlayback(-20000);  // 20 seconds backward
+            break;
+            
+        // ... rest of existing cases ...
+    }
+});
+
     </script>
 </body>
 </html>

@@ -16,6 +16,7 @@ A web application to efficiently manage your Spotify liked songs across multiple
   - Space: Play/stop selected song
   - 1-9: Quick-toggle playlists
   - Esc: Stop playback
+  - ←/→: Skip 20s backward/forward
 
 ## Prerequisites
 
@@ -75,7 +76,7 @@ python app.py
 
 3. Open your browser and navigate to `http://localhost:8888`
 
-4. Click on cells to toggle playlist membership, click on play to trigger playback, click again to stop playback. 
+4. Click on cells to toggle playlist membership, click on play to trigger playback, click again to stop playback. Keyboard shortcuts: ↑/↓: Navigate through songs, Space: Play/stop selected song, 1-9: Quick-toggle playlists, Esc: Stop playback, ←/→: Skip 20s backward/forward
 
 
 ## Project Structure

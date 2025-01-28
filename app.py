@@ -309,6 +309,41 @@ def refresh_data():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/seek', methods=['POST'])
+def seek_playback():
+    """Seek forward/backward in current playback."""
+    if not session.get('token_info'):
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        spotify = get_spotify()
+        data = request.json
+        position_ms = data['position_ms']  # position in milliseconds
+        
+        # Get current playback state
+        playback = spotify.current_playback()
+        if not playback:
+            return jsonify({'error': 'No active playback'}), 400
+            
+        # Calculate new position
+        current_ms = playback['progress_ms']
+        new_position = current_ms + position_ms
+        
+        # Ensure we don't seek past track bounds
+        track_duration = playback['item']['duration_ms']
+        new_position = max(0, min(new_position, track_duration))
+        
+        # Seek to new position
+        spotify.seek_track(new_position)
+        
+        return jsonify({'status': 'success', 'new_position': new_position})
+        
+    except Exception as e:
+        print(f"Error in seek_playback: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8888)
