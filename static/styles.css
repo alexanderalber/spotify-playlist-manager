@@ -1,0 +1,151 @@
+/* Sticky header styling */
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
+}
+.dark thead {
+    background: #1f2937;
+}
+
+/* Active song styling */
+tr.active-song td.sticky-col {
+    background-color: #E5E7EB !important;
+    color: black;
+}
+.dark tr.active-song td.sticky-col {
+    background-color: #4B5563 !important;
+    color: white;
+}
+
+tr.active-song td.playlist-cell:not(.in-playlist) {
+    background-color: #F3F4F6 !important;
+}
+.dark tr.active-song td.playlist-cell:not(.in-playlist) {
+    background-color: #374151 !important;
+}
+
+tr.active-song td.playlist-cell.in-playlist {
+    background-color: #34D399 !important;
+}
+.dark tr.active-song td.playlist-cell.in-playlist {
+    background-color: #047857 !important;
+}
+
+/* Hover effects */
+tr.active-song td.sticky-col:hover {
+    background-color: #D1D5DB !important;
+}
+.dark tr.active-song td.sticky-col:hover {
+    background-color: #374151 !important;
+}
+
+tr.active-song td.playlist-cell:hover {
+    filter: brightness(95%);
+}
+.dark tr.active-song td.playlist-cell:hover {
+    filter: brightness(120%);
+}
+
+/* Table layout control */
+.fixed-col-table {
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.fixed-col-table th,
+.fixed-col-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playlist-cell {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.playlist-cell:hover {
+    background-color: #f3f4f6;
+}
+.dark .playlist-cell:hover {
+    background-color: #374151;
+}
+.in-playlist {
+    background-color: #059669;
+    color: white;
+}
+.in-playlist:hover {
+    background-color: #047857;
+}
+
+/* Sticky first columns */
+.sticky-col {
+    position: sticky;
+    background: white;
+    z-index: 10;
+}
+.dark .sticky-col {
+    background: #1f2937;
+}
+.play-col { 
+    left: 0;
+    width: 48px !important;
+    max-width: 48px !important;
+}
+.song-col { 
+    left: 48px;
+    width: 200px !important;
+    max-width: 200px !important;
+}
+.artist-col { 
+    left: 248px;
+    width: 150px !important;
+    max-width: 150px !important;
+}
+
+/* Fix z-index for sticky header corners */
+thead th.sticky-col {
+    z-index: 30;
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.dark .scroll-indicator {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1));
+}
+.can-scroll .scroll-indicator {
+    opacity: 1;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #94a3b8;
+    border-radius: 4px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #475569;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #64748b;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #334155;
+}

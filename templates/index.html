@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="dark">
+<head>
+    <title>Spotify Playlist Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    maxHeight: {
+                        'table': 'calc(100vh - 8rem)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100">
+    <div class="max-w-[2000px] mx-auto px-4 py-4">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">Spotify Playlist Manager</h1>
+            <div class="flex items-center space-x-4">
+                <button 
+                    onclick="toggleTheme()" 
+                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                    title="Toggle dark mode"
+                >
+                    <!-- moon icon - shown in light mode -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 block dark:hidden" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                    </svg>
+                    <!-- sun icon - shown in dark mode -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden dark:block" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <div class="text-gray-600 dark:text-gray-400">
+                    {{ playlists|length }} Playlists
+                </div>
+            </div>
+        </div>
+        
+        <div class="relative">
+            <div class="overflow-auto max-h-table custom-scrollbar" id="table-container">
+                <table class="min-w-full bg-white dark:bg-gray-800 shadow-md rounded table-fixed">
+                    <thead>
+                        <tr class="bg-gray-100 dark:bg-gray-700">
+                            <th class="px-4 py-2 text-center sticky-col play-col w-12">Play</th>
+                            <th class="px-4 py-2 text-left sticky-col song-col w-[200px]">Song</th>
+                            <th class="px-4 py-2 text-left sticky-col artist-col w-[150px]">Artist</th>
+                            {% for playlist in playlists %}
+                            <th class="px-2 py-2 text-center w-[100px] max-w-[100px]">
+                                <div class="truncate" title="{{ playlist.name }}">{{ playlist.name }}</div>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                        {% for song in songs %}
+                        <tr id="song-row-{{ song.id }}" class="border-t">
+                            <td class="px-4 py-2 text-center sticky-col play-col">
+                                <button 
+                                    class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                                    onclick="playSong('{{ song.id }}')"
+                                >▶</button>
+                            </td>
+                            <td class="px-4 py-2 sticky-col song-col truncate w-[200px]" title="{{ song.name }}">
+                                {{ song.name }}
+                            </td>
+                            <td class="px-4 py-2 sticky-col artist-col truncate w-[150px]" title="{{ song.artist }}">
+                                {{ song.artist }}
+                            </td>
+                            {% for playlist in playlists %}
+                            <td class="px-2 py-2 text-center playlist-cell w-[100px] max-w-[100px] {% if song_in_playlist(song.id, playlist.id) %}in-playlist{% endif %}"
+                                data-song-id="{{ song.id }}"
+                                data-playlist-id="{{ playlist.id }}"
+                                onclick="togglePlaylist(this)">
+                                {% if song_in_playlist(song.id, playlist.id) %}
+                                ✓
+                                {% else %}
+                                +
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="scroll-indicator"></div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            // Optional: Save preference
+            localStorage.setItem('theme', 
+                document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+            );
+        }
+
+        // Load saved theme preference
+        if (localStorage.theme === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Check if table can scroll
+        function updateScrollIndicator() {
+            const container = document.getElementById('table-container');
+            const canScroll = container.scrollWidth > container.clientWidth;
+            container.parentElement.classList.toggle('can-scroll', canScroll);
+        }
+
+        // Update on load and resize
+        window.addEventListener('load', updateScrollIndicator);
+        window.addEventListener('resize', updateScrollIndicator);
+
+        async function togglePlaylist(cell) {
+            const songId = cell.dataset.songId;
+            const playlistId = cell.dataset.playlistId;
+            
+            try {
+                const response = await fetch('/api/toggle_playlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        song_id: songId,
+                        playlist_id: playlistId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to toggle playlist');
+                }
+                
+                // Toggle visual state
+                cell.classList.toggle('in-playlist');
+                cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update playlist. Please try again.');
+            }
+        }
+        
+        let currentlyPlaying = null;
+
+        async function playSong(songId) {
+            try {
+                // if clicking the same song that's playing, stop it
+                if (currentlyPlaying === songId) {
+                    const response = await fetch('/api/stop', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to stop playback');
+                    }
+                    
+                    // Remove active class
+                    document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+                    currentlyPlaying = null;
+                    return;
+                }
+                
+                // otherwise play the new song
+                const response = await fetch('/api/play', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ song_id: songId })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to start playback');
+                }
+
+                // Remove active class from previous song
+                if (currentlyPlaying) {
+                    document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+                }
+
+                // Add active class to new song
+                document.getElementById(`song-row-${songId}`).classList.add('active-song');
+                currentlyPlaying = songId;
+
+            } catch (error) {
+                console.error('Error playing song:', error);
+                alert('Make sure Spotify is open and playing somewhere');
+            }
+        }
+    </script>
+</body>
+</html>
