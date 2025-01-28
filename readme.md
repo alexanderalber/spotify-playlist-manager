@@ -9,13 +9,22 @@ A web application to efficiently manage your Spotify liked songs across multiple
 - View all your liked songs in one place
 - See which songs are in which playlists at a glance
 - Easily add/remove songs to/from multiple playlists
-- Trigger song playback directly from the interface
+- Control song playback directly from the interface
+- Dark/Light mode
 
 ## Prerequisites
 
 - Python 3.10 (other versions might work but are untested)
 - Spotify Premium account 
-- Spotify Developer account for API access
+
+## Spotify Setup
+
+1. Go to [Spotify Developer Portal](https://developer.spotify.com) and make yourself a developer
+2. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) 
+3. Create a new application
+4. Set the redirect URI to `http://localhost:8888/callback`
+5. Copy your Client ID and Client Secret 
+6. In the App settings, activate Web API and Web Playback SDK
 
 ## Setup
 
@@ -45,12 +54,14 @@ pip install -r requirements.txt
    ```
    - Keep this file secure and never commit it to version control
 
-5. Initialize the database:
+5. Initialize the database (Spotify will ask for permission):
 ```bash
 python read_from_spotify.py
 ```
 
-6. Open the native Spotify app on the device of your choice
+## Usage
+
+6. Open the native Spotify app on the device of your choice. This app does not actually play music by itself, it will only trigger the actual Spotify app. 
 
 7. Run the application:
 ```bash
@@ -59,22 +70,16 @@ python app.py
 
 8. Open your browser and navigate to `http://localhost:8888`
 
-## Spotify Setup
-
-1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Create a new application
-3. Set the redirect URI to `http://localhost:8888/callback`
-4. Copy your Client ID and Client Secret 
-5. In the App settings, activate Web API and Web Playback SDK
 
 
 ## Project Structure
 
 ```
 spotify-playlist-manager/
-├── app.py               # Main Flask application
+├── app.py               # Main application
 ├── read_from_spotify.py # Initial database setup
-├── envvars.py           # Spotify API credentials (you need to create this)
+├── backup.py            # Creates a backup of your playlists in json format 
+├── envvars.py           # Spotify API credentials (you need to create this file)
 ├── requirements.txt    
 ├── docs/
 │   └── screenshot.png     

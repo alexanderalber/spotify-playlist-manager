@@ -1,0 +1,26 @@
+# windows 
+Thumbs.db
+desktop.ini
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+env/
+build/
+dist/
+
+# virtual environment
+venv/
+
+# sqlite
+*.db
+*.sqlite3
+
+# project specific
+envvars.py
+backups/
+*.json
+*.csv
+.cache
