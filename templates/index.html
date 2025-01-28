@@ -158,7 +158,126 @@
             }
         }
         
-        let currentlyPlaying = null;
+            
+    let currentlyPlaying = null;  // existing variable
+    let selectedSongId = null;    // new variable for keyboard navigation
+
+    // Helper function to get all song rows
+    function getSongRows() {
+        return Array.from(document.querySelectorAll('tr[id^="song-row-"]'));
+    }
+
+    // Function to select a song row
+    function selectRow(songId) {
+        // Remove previous selection
+        const prevSelected = document.querySelector('.keyboard-selected');
+        if (prevSelected) {
+            prevSelected.classList.remove('keyboard-selected');
+        }
+        
+        // Add selection to new row
+        const row = document.getElementById(`song-row-${songId}`);
+        if (row) {
+            row.classList.add('keyboard-selected');
+            selectedSongId = songId;
+            
+            // Ensure the row is visible
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    // Initialize with first song selected
+    document.addEventListener('DOMContentLoaded', () => {
+        const firstRow = getSongRows()[0];
+        if (firstRow) {
+            selectedSongId = firstRow.id.replace('song-row-', '');
+            selectRow(selectedSongId);
+        }
+    });
+
+    // Keyboard event handler
+    document.addEventListener('keydown', async (e) => {
+        // Ignore if we're in an input field
+        if (e.target.tagName === 'INPUT') return;
+        
+        const rows = getSongRows();
+        const currentIndex = rows.findIndex(row => row.id === `song-row-${selectedSongId}`);
+        
+        switch (e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    const prevRow = rows[currentIndex - 1];
+                    selectRow(prevRow.id.replace('song-row-', ''));
+                }
+                break;
+                
+            case 'ArrowDown':
+                e.preventDefault();
+                if (currentIndex < rows.length - 1) {
+                    const nextRow = rows[currentIndex + 1];
+                    selectRow(nextRow.id.replace('song-row-', ''));
+                }
+                break;
+                
+            case ' ':  // Spacebar
+                e.preventDefault();
+                if (selectedSongId) {
+                    await playSong(selectedSongId);
+                }
+                break;
+                
+            case 'Escape':
+                e.preventDefault();
+                if (currentlyPlaying) {
+                    await fetch('/api/stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+                    currentlyPlaying = null;
+                }
+                break;
+                
+            case 'Enter':
+                e.preventDefault();
+                if (selectedSongId) {
+                    // Toggle in first playlist as an example
+                    const firstPlaylistCell = document
+                        .getElementById(`song-row-${selectedSongId}`)
+                        .querySelector('.playlist-cell');
+                    if (firstPlaylistCell) {
+                        await togglePlaylist(firstPlaylistCell);
+                    }
+                }
+                break;
+                
+            default:
+                // Number keys 1-9 for quick playlist toggle
+                if (e.key >= '1' && e.key <= '9') {
+                    const playlistIndex = parseInt(e.key) - 1;
+                    if (selectedSongId) {
+                        const playlistCell = document
+                            .getElementById(`song-row-${selectedSongId}`)
+                            .querySelectorAll('.playlist-cell')[playlistIndex];
+                        if (playlistCell) {
+                            await togglePlaylist(playlistCell);
+                        }
+                    }
+                }
+        }
+    });
+
+    // Add click handler to rows for selection
+    document.querySelectorAll('tr[id^="song-row-"]').forEach(row => {
+        row.addEventListener('click', (e) => {
+            // Only handle clicks on the row itself or its cells, not on buttons
+            if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                const songId = row.id.replace('song-row-', '');
+                selectRow(songId);
+            }
+        });
+    });
 
         async function playSong(songId) {
     try {

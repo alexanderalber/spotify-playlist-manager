@@ -21,6 +21,7 @@ class SpotifyAnalyzer:
         self.db_path = Path("spotify_cache.db")
         self.init_db()
     
+    
     def init_db(self):
         """Initialize SQLite database with required tables."""
         with sqlite3.connect(self.db_path) as conn:
@@ -54,6 +55,7 @@ class SpotifyAnalyzer:
                 );
             """)
     
+
     def fetch_all_liked_songs(self):
         """Fetch all liked songs and store in database."""
         print("Fetching liked songs...")
@@ -82,6 +84,7 @@ class SpotifyAnalyzer:
         
         print(f"Stored {count} liked songs")
     
+
     def fetch_all_playlists(self):
         """Fetch all user playlists and their songs."""
         print("Fetching playlists...")
@@ -143,6 +146,7 @@ class SpotifyAnalyzer:
         print(f"- Followed playlists: {followed_playlist_count}")
         print(f"- Total tracks in own playlists: {total_tracks}")
     
+
     def analyze_songs(self) -> pd.DataFrame:
         """Create a DataFrame showing which songs are in which playlists."""
         with sqlite3.connect(self.db_path) as conn:
@@ -220,8 +224,6 @@ class SpotifyAnalyzer:
             return result
 
 
-
-    # In read_from_spotify.py die cleanup Methode hinzufügen:
     def cleanup_deleted_items(self):
         """Remove items that no longer exist in Spotify."""
         print("Starting cleanup of deleted items...")

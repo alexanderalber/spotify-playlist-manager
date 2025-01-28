@@ -5,13 +5,17 @@ A web application to efficiently manage your Spotify liked songs across multiple
 ![Spotify Playlist Manager Screenshot](/docs/screenshot.PNG)
 
 ## Features
-
 - View all your liked songs in one place
 - See which songs are in which playlists at a glance
 - Easily add/remove songs to/from multiple playlists
 - Control song playback directly from the interface
 - Dark/Light mode
 - Already played songs are marked
+- Keyboard navigation for power users:
+  - ↑/↓: Navigate through songs
+  - Space: Play/stop selected song
+  - 1-9: Quick-toggle playlists
+  - Esc: Stop playback
 
 ## Prerequisites
 

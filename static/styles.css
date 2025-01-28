@@ -169,3 +169,34 @@ tr.played td.play-col {
     color: #ffffff !important;
     opacity: 0.6 !important;
 }
+
+/* Keyboard selection styling */
+.keyboard-selected td.sticky-col {
+    background-color: #E5E7EB !important;
+}
+.dark .keyboard-selected td.sticky-col {
+    background-color: #374151 !important;
+}
+
+.keyboard-selected td.playlist-cell:not(.in-playlist) {
+    background-color: #F3F4F6 !important;
+}
+.dark .keyboard-selected td.playlist-cell:not(.in-playlist) {
+    background-color: #1F2937 !important;
+}
+
+/* Active (playing) song always takes precedence */
+tr.active-song.keyboard-selected td.sticky-col {
+    background-color: #D1D5DB !important;
+}
+.dark tr.active-song.keyboard-selected td.sticky-col {
+    background-color: #4B5563 !important;
+}
+
+/* Preserve playlist cell highlighting for playing songs */
+tr.keyboard-selected td.playlist-cell.in-playlist {
+    background-color: #059669 !important;
+}
+.dark tr.keyboard-selected td.playlist-cell.in-playlist {
+    background-color: #047857 !important;
+}
