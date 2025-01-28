@@ -150,30 +150,22 @@ thead th.sticky-col {
     background-color: #334155;
 }
 
-/* Played song styling */
 
-tr.played td {
-    color: #9CA3AF !important;  /* helleres grau für light mode */
+/* Played song styling - only affects play column */
+tr.played td.play-col {
+    color: #4B5563 !important;  
 }
-.dark tr.played td {
-    color: #ffffff !important;  /* weiß für dark mode */
-    opacity: 0.6 !important;    /* stattdessen opacity für den dimming effect */
+.dark tr.played td.play-col {
+    color: #ffffff !important;  
+    opacity: 0.6 !important;    
 }
 
-tr.played td.sticky-col {
+tr.played td.play-col {
     background-color: #F3F4F6 !important;
-    color: #9CA3AF !important;
+    color: #4B5563 !important;
 }
-.dark tr.played td.sticky-col {
+.dark tr.played td.play-col {
     background-color: #374151 !important;
-    color: #ffffff !important;  /* weiß */
-    opacity: 0.6 !important;
-}
-
-tr.played td.playlist-cell:not(.in-playlist) {
-    color: #9CA3AF !important;
-}
-.dark tr.played td.playlist-cell:not(.in-playlist) {
-    color: #ffffff !important;  /* weiß */
+    color: #ffffff !important;
     opacity: 0.6 !important;
 }

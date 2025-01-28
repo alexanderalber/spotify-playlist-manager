@@ -11,6 +11,7 @@ A web application to efficiently manage your Spotify liked songs across multiple
 - Easily add/remove songs to/from multiple playlists
 - Control song playback directly from the interface
 - Dark/Light mode
+- Already played songs are marked
 
 ## Prerequisites
 
