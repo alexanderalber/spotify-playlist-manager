@@ -466,10 +466,9 @@ async function togglePlaylist(cell) {
 }
 
 
-
-
 // Global variable to store the interval ID
 let playbackUpdateInterval = null;
+
 
 // Format milliseconds to MM:SS
 function formatTime(ms) {
@@ -478,6 +477,7 @@ function formatTime(ms) {
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
+
 
 // Update the play button text with current playback status
 async function updatePlaybackStatus() {
@@ -490,14 +490,14 @@ async function updatePlaybackStatus() {
         if (data.is_playing) {
             const progressText = `(${formatTime(data.progress_ms)}/${formatTime(data.duration_ms)})`;
             const playButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
-            playButton.innerHTML = `<div class="flex justify-center items-center w-full h-full"><span class="text-xs">${progressText}</span></div>`;
+            playButton.innerHTML = `<div class="flex justify-center items-center w-full h-full"><span class="text-xs text-white dark:text-white">${progressText}</span></div>`;
         }
     } catch (error) {
         console.error('Error updating playback status:', error);
     }
 }
 
-// Modify the existing playSong function
+
 async function playSong(songId) {
     try {
         // If clicking the same song that's playing, stop it
@@ -582,6 +582,7 @@ async function playSong(songId) {
         alert('Make sure Spotify is open and playing somewhere');
     }
 }
+
 
     </script>
 </body>
