@@ -4,6 +4,7 @@ import { NavigationManager } from './navigation-manager.js';
 export const PlaybackManager = {
     currentlyPlaying: null,
     playbackUpdateInterval: null,
+    updateSongId: null,
 
     async togglePlay(songId) {
         try {
@@ -19,15 +20,28 @@ export const PlaybackManager = {
     },
 
     async startPlayback(songId) {
+        this.stopPlaybackUpdates();
+        
+        if (this.currentlyPlaying) {
+            const previousButton = document.querySelector(`#song-row-${this.currentlyPlaying} .play-button`);
+            previousButton.textContent = '▶';
+        }
+        
         await Utils.apiCall('/api/play', 'POST', { song_id: songId });
         this.updatePlaybackState(songId);
         await this.markAsPlayed(songId);
+        
+        this.updateSongId = songId;
         this.startPlaybackUpdates();
         NavigationManager.selectRow(songId);
     },
 
     async stopPlayback() {
         await Utils.apiCall('/api/stop', 'POST');
+        if (this.currentlyPlaying) {
+            const playButton = document.querySelector(`#song-row-${this.currentlyPlaying} .play-button`);
+            playButton.textContent = '▶';
+        }
         this.updatePlaybackState(null);
         this.stopPlaybackUpdates();
     },
@@ -59,6 +73,7 @@ export const PlaybackManager = {
     },
 
     stopPlaybackUpdates() {
+        this.updateSongId = null;
         if (this.playbackUpdateInterval) {
             clearInterval(this.playbackUpdateInterval);
             this.playbackUpdateInterval = null;
@@ -66,17 +81,34 @@ export const PlaybackManager = {
     },
 
     async updatePlaybackStatus() {
-        if (!this.currentlyPlaying) return;
+        if (!this.updateSongId) return;
         
         try {
             const data = await Utils.apiCall('/api/playback_status');
+            if (!this.updateSongId) return;
+            
+            const playButton = document.querySelector(`#song-row-${this.updateSongId} .play-button`);
+            if (!playButton) return;
+            
             if (data.is_playing) {
                 const progressText = `(${Utils.formatTime(data.progress_ms)}/${Utils.formatTime(data.duration_ms)})`;
-                const playButton = document.querySelector(`#song-row-${this.currentlyPlaying} .play-button`);
                 playButton.innerHTML = `<div class="flex justify-center items-center w-full h-full"><span class="text-xs text-gray-800 dark:text-white">${progressText}</span></div>`;
+                
+                if (data.progress_ms >= data.duration_ms) {
+                    this.stopPlayback();
+                }
+            } else {
+                playButton.textContent = '▶';
+                this.stopPlayback();
             }
         } catch (error) {
             console.error('Error updating playback status:', error);
+            if (this.updateSongId) {
+                const playButton = document.querySelector(`#song-row-${this.updateSongId} .play-button`);
+                if (playButton) {
+                    playButton.textContent = '▶';
+                }
+            }
         }
     }
 };

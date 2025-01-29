@@ -106,8 +106,7 @@ spotify-playlist-manager/
 ├── backup.py            # Save Playlists to json
 ├── requirements.txt    
 ├── static/
-│   ├── css/
-│   │   └── styles.css  
+│   ├── styles.css  
 │   └── js/
 │       ├── utils.js           
 │       ├── ui-manager.js      
