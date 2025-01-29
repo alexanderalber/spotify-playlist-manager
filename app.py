@@ -402,5 +402,33 @@ def like_song():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/playback_status')
+def get_playback_status():
+    """Get current playback status."""
+    if not session.get('token_info'):
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        spotify = get_spotify()
+        playback = spotify.current_playback()
+        
+        if not playback or not playback['is_playing']:
+            return jsonify({
+                'is_playing': False,
+                'progress_ms': 0,
+                'duration_ms': 0
+            })
+        
+        return jsonify({
+            'is_playing': playback['is_playing'],
+            'progress_ms': playback['progress_ms'],
+            'duration_ms': playback['item']['duration_ms']
+        })
+        
+    except Exception as e:
+        print(f"Error getting playback status: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=8888)

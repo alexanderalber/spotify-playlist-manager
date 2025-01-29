@@ -88,16 +88,30 @@ tr.active-song td.playlist-cell:hover {
 .dark .sticky-col {
     background: #1f2937;
 }
+
 .play-col { 
     left: 0;
-    width: 48px !important;
-    max-width: 48px !important;
+    width: 64px !important;
+    max-width: 64px !important;
 }
+
+/* Reset button styling completely */
+.play-col button {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ensure song column position is updated */
 .song-col { 
-    left: 48px;
+    left: 64px;
     width: 200px !important;
     max-width: 200px !important;
 }
+
 .artist-col { 
     left: 248px;
     width: 150px !important;

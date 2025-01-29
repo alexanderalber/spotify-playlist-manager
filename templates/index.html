@@ -468,6 +468,121 @@ async function togglePlaylist(cell) {
 
 
 
+// Global variable to store the interval ID
+let playbackUpdateInterval = null;
+
+// Format milliseconds to MM:SS
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Update the play button text with current playback status
+async function updatePlaybackStatus() {
+    if (!currentlyPlaying) return;
+    
+    try {
+        const response = await fetch('/api/playback_status');
+        const data = await response.json();
+        
+        if (data.is_playing) {
+            const progressText = `(${formatTime(data.progress_ms)}/${formatTime(data.duration_ms)})`;
+            const playButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
+            playButton.innerHTML = `<div class="flex justify-center items-center w-full h-full"><span class="text-xs">${progressText}</span></div>`;
+        }
+    } catch (error) {
+        console.error('Error updating playback status:', error);
+    }
+}
+
+// Modify the existing playSong function
+async function playSong(songId) {
+    try {
+        // If clicking the same song that's playing, stop it
+        if (currentlyPlaying === songId) {
+            const response = await fetch('/api/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to stop playback');
+            }
+            
+            // Clear the interval
+            if (playbackUpdateInterval) {
+                clearInterval(playbackUpdateInterval);
+                playbackUpdateInterval = null;
+            }
+            
+            // Reset the play button text
+            const playButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
+            playButton.textContent = '▶';
+            
+            // Remove active class
+            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+            currentlyPlaying = null;
+            return;
+        }
+        
+        // Clear existing interval if any
+        if (playbackUpdateInterval) {
+            clearInterval(playbackUpdateInterval);
+        }
+        
+        // Start the new song
+        const response = await fetch('/api/play', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ song_id: songId })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to start playback');
+        }
+
+        // Remove active class from previous song and reset its play button
+        if (currentlyPlaying) {
+            const prevPlayButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
+            prevPlayButton.textContent = '▶';
+            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
+        }
+
+        // Add active class to new song
+        document.getElementById(`song-row-${songId}`).classList.add('active-song');
+        currentlyPlaying = songId;
+
+        // Start updating playback status
+        await updatePlaybackStatus();  // Initial update
+        playbackUpdateInterval = setInterval(updatePlaybackStatus, 1000);  // Update every second
+
+        // Mark song as played
+        const playedResponse = await fetch('/api/mark_played', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ song_id: songId })
+        });
+        
+        if (!playedResponse.ok) {
+            console.error('Failed to mark song as played');
+        }
+        
+        document.getElementById(`song-row-${songId}`).classList.add('played');
+
+    } catch (error) {
+        console.error('Error playing song:', error);
+        alert('Make sure Spotify is open and playing somewhere');
+    }
+}
+
     </script>
 </body>
 </html>
