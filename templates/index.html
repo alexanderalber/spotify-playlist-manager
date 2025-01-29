@@ -365,8 +365,8 @@ async function refreshData() {
             throw new Error('Failed to refresh data');
         }
         
-        // Reload the page to show new data
-        window.location.reload();
+        // stattdessen direkt zur root url navigieren
+        window.location.href = '/';
         
     } catch (error) {
         console.error('Error:', error);

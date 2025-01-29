@@ -294,7 +294,6 @@ def mark_played():
         return jsonify({'error': str(e)}), 500
 
 
-# Neue Route hinzufügen:
 @app.route('/api/refresh', methods=['POST'])
 def refresh_data():
     """Refresh all data from Spotify."""
@@ -302,12 +301,11 @@ def refresh_data():
         return jsonify({'error': 'Not authenticated'}), 401
         
     try:
-        # Initialize analyzer with current credentials
-        analyzer = SpotifyAnalyzer(
-            client_id=envvars.client_id,
-            client_secret=envvars.client_secret,
-            redirect_uri="http://localhost:8888/callback"
-        )
+        # Use existing spotify client instead of creating new auth
+        spotify = get_spotify()
+        
+        # Initialize analyzer with existing spotify client
+        analyzer = SpotifyAnalyzer(spotify_client=spotify)
         
         # Perform cleanup first
         analyzer.cleanup_deleted_items()
@@ -321,6 +319,8 @@ def refresh_data():
     except Exception as e:
         print(f"Error in refresh: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+        
 
 
 @app.route('/api/seek', methods=['POST'])

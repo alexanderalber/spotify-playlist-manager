@@ -9,14 +9,17 @@ from typing import Dict, List, Set
 import envvars
 
 class SpotifyAnalyzer:
-    def __init__(self, client_id: str, client_secret: str, redirect_uri: str):
-        """Initialize Spotify client and database."""
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-            client_id=client_id,
-            client_secret=client_secret,
-            redirect_uri=redirect_uri,
-            scope="user-library-read playlist-read-private playlist-modify-public playlist-modify-private"
-        ))
+    def __init__(self, spotify_client=None, client_id=None, client_secret=None, redirect_uri=None):
+        """Initialize with existing client or create new one."""
+        if spotify_client:
+            self.sp = spotify_client
+        else:
+            self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+                client_id=client_id,
+                client_secret=client_secret,
+                redirect_uri=redirect_uri,
+                scope="user-library-read playlist-read-private playlist-modify-public playlist-modify-private"
+            ))
         
         self.db_path = Path("spotify_cache.db")
         self.init_db()
