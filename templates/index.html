@@ -19,27 +19,26 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100">
     <div class="max-w-[2000px] mx-auto px-4 py-4">
-        <div class="flex justify-between items-center mb-4">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">Spotify Playlist Manager</h1>
             <div class="flex items-center space-x-4">
-                
                 <button 
-                onclick="refreshData()"
-                class="px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800"
-                id="refresh-button"
+                    id="refresh-button"
+                    class="px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800"
                 >
                     Refresh Data
                 </button>
                 <button 
-                    onclick="toggleTheme()" 
+                    id="theme-toggle"
                     class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                     title="Toggle dark mode"
                 >
-                    <!-- moon icon - shown in light mode -->
+                    <!-- moon icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 block dark:hidden" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
                     </svg>
-                    <!-- sun icon - shown in dark mode -->
+                    <!-- sun icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden dark:block" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
                     </svg>
@@ -48,8 +47,9 @@
                     {{ playlists|length }} Playlists
                 </div>
             </div>
-        </div>
-        
+        </header>
+
+        <!-- Table Container -->
         <div class="relative">
             <div class="overflow-auto max-h-table custom-scrollbar" id="table-container">
                 <table class="min-w-full bg-white dark:bg-gray-800 shadow-md rounded table-fixed">
@@ -70,11 +70,11 @@
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
                         {% for song in songs %}
                         <tr id="song-row-{{ song.id }}" 
+                            data-song-id="{{ song.id }}"
                             class="border-t {% if song_was_played(song.id) %}played{% endif %}">
                             <td class="px-4 py-2 text-center sticky-col play-col">
                                 <button 
-                                    class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                                    onclick="playSong('{{ song.id }}')"
+                                    class="play-button text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                                 >▶</button>
                             </td>
                             <td class="px-4 py-2 sticky-col song-col truncate w-[200px]" title="{{ song.name }}">
@@ -86,8 +86,7 @@
                             {% for playlist in playlists %}
                             <td class="px-2 py-2 text-center playlist-cell w-[100px] max-w-[100px] {% if song_in_playlist(song.id, playlist.id) %}in-playlist{% endif %}"
                                 data-song-id="{{ song.id }}"
-                                data-playlist-id="{{ playlist.id }}"
-                                onclick="togglePlaylist(this)">
+                                data-playlist-id="{{ playlist.id }}">
                                 {% if song_in_playlist(song.id, playlist.id) %}
                                 ✓
                                 {% else %}
@@ -104,494 +103,43 @@
         </div>
     </div>
 
-    <script>
-        // Theme toggle
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            // Optional: Save preference
-            localStorage.setItem('theme', 
-                document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-            );
-        }
+    <script type="module">
+        import { Utils } from '/static/js/utils.js';
+        import { UIManager } from '/static/js/ui-manager.js';
+        import { PlaylistManager } from '/static/js/playlist-manager.js';
+        import { PlaybackManager } from '/static/js/playback-manager.js';
+        import { NavigationManager } from '/static/js/navigation-manager.js';
+        import { KeyboardManager } from '/static/js/keyboard-manager.js';
 
-        // Load saved theme preference
-        if (localStorage.theme === 'light') {
-            document.documentElement.classList.remove('dark');
-        }
-
-        // Check if table can scroll
-        function updateScrollIndicator() {
-            const container = document.getElementById('table-container');
-            const canScroll = container.scrollWidth > container.clientWidth;
-            container.parentElement.classList.toggle('can-scroll', canScroll);
-        }
-
-        // Update on load and resize
-        window.addEventListener('load', updateScrollIndicator);
-        window.addEventListener('resize', updateScrollIndicator);
-
-        async function togglePlaylist(cell) {
-            const songId = cell.dataset.songId;
-            const playlistId = cell.dataset.playlistId;
+        // Initialize managers
+        document.addEventListener('DOMContentLoaded', () => {
+            UIManager.init();
+            NavigationManager.init();
             
-            try {
-                const response = await fetch('/api/toggle_playlist', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        song_id: songId,
-                        playlist_id: playlistId
-                    })
+            // Setup event listeners
+            document.getElementById('refresh-button')
+                .addEventListener('click', () => location.reload());
+            
+            document.getElementById('theme-toggle')
+                .addEventListener('click', () => UIManager.toggleTheme());
+                
+            document.addEventListener('keydown', KeyboardManager.handleKeyPress);
+            
+            // Setup play buttons
+            document.querySelectorAll('.play-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const songId = e.target.closest('tr').dataset.songId;
+                    PlaybackManager.togglePlay(songId);
                 });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to toggle playlist');
-                }
-                
-                // Toggle visual state
-                cell.classList.toggle('in-playlist');
-                cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to update playlist. Please try again.');
-            }
-        }
-        
-            
-    let currentlyPlaying = null;  // existing variable
-    let selectedSongId = null;    // new variable for keyboard navigation
-
-    // Helper function to get all song rows
-    function getSongRows() {
-        return Array.from(document.querySelectorAll('tr[id^="song-row-"]'));
-    }
-
-    // Function to select a song row
-    function selectRow(songId) {
-        // Remove previous selection
-        const prevSelected = document.querySelector('.keyboard-selected');
-        if (prevSelected) {
-            prevSelected.classList.remove('keyboard-selected');
-        }
-        
-        // Add selection to new row
-        const row = document.getElementById(`song-row-${songId}`);
-        if (row) {
-            row.classList.add('keyboard-selected');
-            selectedSongId = songId;
-            
-            // Ensure the row is visible
-            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    }
-
-    // Initialize with first song selected
-    document.addEventListener('DOMContentLoaded', () => {
-        const firstRow = getSongRows()[0];
-        if (firstRow) {
-            selectedSongId = firstRow.id.replace('song-row-', '');
-            selectRow(selectedSongId);
-        }
-    });
-
-    // Keyboard event handler
-    document.addEventListener('keydown', async (e) => {
-        // Ignore if we're in an input field
-        if (e.target.tagName === 'INPUT') return;
-        
-        const rows = getSongRows();
-        const currentIndex = rows.findIndex(row => row.id === `song-row-${selectedSongId}`);
-        
-        switch (e.key) {
-            case 'ArrowUp':
-                e.preventDefault();
-                if (currentIndex > 0) {
-                    const prevRow = rows[currentIndex - 1];
-                    selectRow(prevRow.id.replace('song-row-', ''));
-                }
-                break;
-                
-            case 'ArrowDown':
-                e.preventDefault();
-                if (currentIndex < rows.length - 1) {
-                    const nextRow = rows[currentIndex + 1];
-                    selectRow(nextRow.id.replace('song-row-', ''));
-                }
-                break;
-                
-            case ' ':  // Spacebar
-                e.preventDefault();
-                if (selectedSongId) {
-                    await playSong(selectedSongId);
-                }
-                break;
-                
-            case 'Escape':
-                e.preventDefault();
-                if (currentlyPlaying) {
-                    await fetch('/api/stop', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-                    currentlyPlaying = null;
-                }
-                break;
-
-
-            case 'ArrowRight':
-                e.preventDefault();
-                await seekPlayback(20000);  // 20 seconds forward
-                break;
-                
-            case 'ArrowLeft':
-                e.preventDefault();
-                await seekPlayback(-20000);  // 20 seconds backward
-                break;
-                    
-            case 'Enter':
-                e.preventDefault();
-                if (selectedSongId) {
-                    // Toggle in first playlist as an example
-                    const firstPlaylistCell = document
-                        .getElementById(`song-row-${selectedSongId}`)
-                        .querySelector('.playlist-cell');
-                    if (firstPlaylistCell) {
-                        await togglePlaylist(firstPlaylistCell);
-                    }
-                }
-                break;
-                
-            default:
-                // Number keys 1-9 for quick playlist toggle
-                if (e.key >= '1' && e.key <= '9') {
-                    const playlistIndex = parseInt(e.key) - 1;
-                    if (selectedSongId) {
-                        const playlistCell = document
-                            .getElementById(`song-row-${selectedSongId}`)
-                            .querySelectorAll('.playlist-cell')[playlistIndex];
-                        if (playlistCell) {
-                            await togglePlaylist(playlistCell);
-                        }
-                    }
-                }
-        }
-    });
-
-
-    document.querySelectorAll('tr[id^="song-row-"]').forEach(row => {
-        row.addEventListener('click', (e) => {
-            // Only handle clicks on the row itself or its cells, not on buttons
-            if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                const songId = row.id.replace('song-row-', '');
-                selectRow(songId);
-            }
-        });
-    });
-
-        async function playSong(songId) {
-    try {
-        // if clicking the same song that's playing, stop it
-        if (currentlyPlaying === songId) {
-            const response = await fetch('/api/stop', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
             });
             
-            if (!response.ok) {
-                throw new Error('Failed to stop playback');
-            }
-            
-            // Remove active class
-            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-            currentlyPlaying = null;
-            return;
-        }
-        
-        // otherwise play the new song
-        const response = await fetch('/api/play', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ song_id: songId })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to start playback');
-        }
-
-        // Remove active class from previous song
-        if (currentlyPlaying) {
-            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-        }
-
-        // Add active class to new song
-        document.getElementById(`song-row-${songId}`).classList.add('active-song');
-        currentlyPlaying = songId;
-
-        // Mark song as played in database
-        const playedResponse = await fetch('/api/mark_played', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ song_id: songId })
-        });
-        
-        if (!playedResponse.ok) {
-            console.error('Failed to mark song as played');
-        }
-        
-        // Add played class
-        document.getElementById(`song-row-${songId}`).classList.add('played');
-
-    } catch (error) {
-        console.error('Error playing song:', error);
-        alert('Make sure Spotify is open and playing somewhere');
-    }
-}
-
-
-
-async function refreshData() {
-    const button = document.getElementById('refresh-button');
-    button.disabled = true;
-    button.textContent = 'Refreshing...';
-    
-    try {
-        const response = await fetch('/api/refresh', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to refresh data');
-        }
-        
-        window.location.href = '/';
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to refresh data. Please try again.');
-        button.textContent = 'Refresh Data';
-        button.disabled = false;
-    }
-}
-
-async function seekPlayback(ms) {
-    if (!currentlyPlaying) return;
-    
-    try {
-        const response = await fetch('/api/seek', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ position_ms: ms })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to seek');
-        }
-        
-    } catch (error) {
-        console.error('Error seeking:', error);
-    }
-}
-
-
-
-async function togglePlaylist(cell) {
-    const songId = cell.dataset.songId;
-    const playlistId = cell.dataset.playlistId;
-    
-    try {
-        // Special handling for liked songs
-        if (playlistId === 'liked_songs') {
-            const endpoint = cell.classList.contains('in-playlist') ? 
-                '/api/unlike_song' : '/api/like_song';
-                
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    song_id: songId
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to update liked status');
-            }
-            
-            // Toggle visual state
-            cell.classList.toggle('in-playlist');
-            cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
-            return;
-        }
-        
-        // Normal playlist handling...
-        const response = await fetch('/api/toggle_playlist', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                song_id: songId,
-                playlist_id: playlistId
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to toggle playlist');
-        }
-        
-        // Toggle visual state
-        cell.classList.toggle('in-playlist');
-        cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to update playlist. Please try again.');
-    }
-}
-
-
-// Global variable to store the interval ID
-let playbackUpdateInterval = null;
-
-
-// Format milliseconds to MM:SS
-function formatTime(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
-
-// Update the play button text with current playback status
-async function updatePlaybackStatus() {
-    if (!currentlyPlaying) return;
-    
-    try {
-        const response = await fetch('/api/playback_status');
-        const data = await response.json();
-        
-        if (data.is_playing) {
-            const progressText = `(${formatTime(data.progress_ms)}/${formatTime(data.duration_ms)})`;
-            const playButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
-            playButton.innerHTML = `<div class="flex justify-center items-center w-full h-full"><span class="text-xs text-gray-800 dark:text-white">${progressText}</span></div>`;
-        }
-    } catch (error) {
-        console.error('Error updating playback status:', error);
-    }
-}
-
-
-async function playSong(songId) {
-    try {
-        // If clicking the same song that's playing, stop it
-        if (currentlyPlaying === songId) {
-            // First check if anything is actually playing
-            const statusResponse = await fetch('/api/playback_status');
-            const status = await statusResponse.json();
-            
-            // Only try to stop if something is playing
-            if (status.is_playing) {
-                const response = await fetch('/api/stop', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
+            // Setup playlist cells
+            document.querySelectorAll('.playlist-cell').forEach(cell => {
+                cell.addEventListener('click', () => {
+                    PlaylistManager.toggleSongInPlaylist(cell);
                 });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to stop playback');
-                }
-            }
-            
-            // Clear the interval
-            if (playbackUpdateInterval) {
-                clearInterval(playbackUpdateInterval);
-                playbackUpdateInterval = null;
-            }
-            
-            // Reset the play button text
-            const playButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
-            playButton.textContent = '▶';
-            
-            // Remove active class
-            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-            currentlyPlaying = null;
-            return;
-        }
-        
-        // Clear existing interval if any
-        if (playbackUpdateInterval) {
-            clearInterval(playbackUpdateInterval);
-        }
-        
-        // Start the new song
-        const response = await fetch('/api/play', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ song_id: songId })
+            });
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to start playback');
-        }
-
-        // Remove active class from previous song and reset its play button
-        if (currentlyPlaying) {
-            const prevPlayButton = document.querySelector(`#song-row-${currentlyPlaying} .play-col button`);
-            prevPlayButton.textContent = '▶';
-            document.getElementById(`song-row-${currentlyPlaying}`).classList.remove('active-song');
-        }
-
-        // Add active class to new song
-        document.getElementById(`song-row-${songId}`).classList.add('active-song');
-        currentlyPlaying = songId;
-
-        // Start updating playback status
-        await updatePlaybackStatus();  // Initial update
-        playbackUpdateInterval = setInterval(updatePlaybackStatus, 1000);  // Update every second
-
-        // Mark song as played
-        const playedResponse = await fetch('/api/mark_played', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ song_id: songId })
-        });
-        
-        if (!playedResponse.ok) {
-            console.error('Failed to mark song as played');
-        }
-        
-        document.getElementById(`song-row-${songId}`).classList.add('played');
-        selectRow(songId);
-
-    } catch (error) {
-        console.error('Error playing song:', error);
-        alert('Make sure Spotify is open and playing somewhere');
-    }
-}
-
-
     </script>
 </body>
 </html>
