@@ -24,3 +24,4 @@ backups/
 *.json
 *.csv
 .cache
+run.bat
