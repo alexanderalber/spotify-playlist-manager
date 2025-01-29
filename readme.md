@@ -11,12 +11,7 @@ A web application to efficiently manage your Spotify liked songs across multiple
 - Control song playback directly from the interface
 - Dark/Light mode
 - Already played songs are marked
-- Keyboard navigation for power users:
-  - ↑/↓: Navigate through songs
-  - Space: Play/stop selected song
-  - 1-9: Quick-toggle playlists
-  - Esc: Stop playback
-  - ←/→: Skip 20s backward/forward
+- Keyboard navigation for power users
 
 ## Prerequisites
 

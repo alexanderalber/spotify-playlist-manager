@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, jsonify, request, redirect, session
 import sqlite3
 import pandas as pd
@@ -8,9 +9,9 @@ import os
 from read_from_spotify import SpotifyAnalyzer
 import envvars
 
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24) 
-
 
 
 auth_manager = SpotifyOAuth(
@@ -21,16 +22,19 @@ auth_manager = SpotifyOAuth(
     cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
 )
 
+
 def get_spotify():
     """Get spotify client, creating if needed."""
     if not session.get('token_info'):
         return None
     return spotipy.Spotify(auth_manager=auth_manager)
 
+
 def get_db_connection():
     conn = sqlite3.connect('spotify_cache.db')
     conn.row_factory = sqlite3.Row
     return conn
+
 
 @app.route('/')
 def index():
@@ -97,7 +101,6 @@ def index():
         token = auth_manager.get_cached_token()['access_token']
         
 
-
         played_songs = conn.execute("""
             SELECT DISTINCT song_id 
             FROM played_history
@@ -114,8 +117,9 @@ def index():
 
         def song_in_playlist(song_id, playlist_id, memberships_set):
             if playlist_id == 'liked_songs':
-                return True  # alle songs in der liste sind liked
+                return True  # all songs in this list are liked
             return (song_id, playlist_id) in memberships_set
+
 
         return render_template(
             'index.html',
@@ -136,12 +140,14 @@ def index():
         print(f"Error in index: {str(e)}")
         return str(e), 500
 
+
 @app.route('/login')
 def login():
     """Handle login flow."""
     auth_url = auth_manager.get_authorize_url()
     print(f"Redirecting to auth URL: {auth_url}")
     return redirect(auth_url)
+
 
 @app.route('/callback')
 def callback():
@@ -156,6 +162,7 @@ def callback():
     print("Token stored in session")
     
     return redirect('/')
+
 
 @app.route('/api/toggle_playlist', methods=['POST'])
 def toggle_playlist():
@@ -212,7 +219,6 @@ def toggle_playlist():
         return jsonify({'error': str(e)}), 500
 
 
-
 @app.route('/api/stop', methods=['POST'])
 def stop_playback():
     """Stop current playback."""
@@ -229,7 +235,6 @@ def stop_playback():
         return jsonify({'error': str(e)}), 500
 
         
-
 @app.route('/api/play', methods=['POST'])
 def play_song():
     """Start playback of a specific song."""
@@ -320,8 +325,6 @@ def refresh_data():
         print(f"Error in refresh: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-        
-
 
 @app.route('/api/seek', methods=['POST'])
 def seek_playback():
@@ -357,7 +360,6 @@ def seek_playback():
         return jsonify({'error': str(e)}), 500
 
 
-
 @app.route('/api/unlike_song', methods=['POST'])
 def unlike_song():
     """Remove a song from liked songs."""
@@ -371,18 +373,34 @@ def unlike_song():
         
         # Remove from Spotify liked songs
         spotify.current_user_saved_tracks_delete([song_id])
-        
-        # REMOVED: No longer delete from DB - will be cleaned up on next refresh
-        # conn = get_db_connection()
-        # conn.execute('DELETE FROM liked_songs WHERE id = ?', (song_id,))
-        # conn.commit()
-        # conn.close()
-        
+
         return jsonify({'status': 'success'})
         
     except Exception as e:
         print(f"Error in unlike_song: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/like_song', methods=['POST'])
+def like_song():
+    """Add a song back to liked songs."""
+    if not session.get('token_info'):
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        spotify = get_spotify()
+        data = request.json
+        song_id = data['song_id']
+        
+        # Add to Spotify liked songs
+        spotify.current_user_saved_tracks_add([song_id])
+        
+        return jsonify({'status': 'success'})
+        
+    except Exception as e:
+        print(f"Error in like_song: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8888)

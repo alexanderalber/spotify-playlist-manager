@@ -240,7 +240,18 @@
                     currentlyPlaying = null;
                 }
                 break;
+
+
+            case 'ArrowRight':
+                e.preventDefault();
+                await seekPlayback(20000);  // 20 seconds forward
+                break;
                 
+            case 'ArrowLeft':
+                e.preventDefault();
+                await seekPlayback(-20000);  // 20 seconds backward
+                break;
+                    
             case 'Enter':
                 e.preventDefault();
                 if (selectedSongId) {
@@ -270,7 +281,7 @@
         }
     });
 
-    // Add click handler to rows for selection
+
     document.querySelectorAll('tr[id^="song-row-"]').forEach(row => {
         row.addEventListener('click', (e) => {
             // Only handle clicks on the row itself or its cells, not on buttons
@@ -365,7 +376,6 @@ async function refreshData() {
             throw new Error('Failed to refresh data');
         }
         
-        // stattdessen direkt zur root url navigieren
         window.location.href = '/';
         
     } catch (error) {
@@ -398,25 +408,6 @@ async function seekPlayback(ms) {
 }
 
 
-// Update keyboard event handler
-document.addEventListener('keydown', async (e) => {
-    // ... existing code ...
-    
-    switch (e.key) {
-        case 'ArrowRight':
-            e.preventDefault();
-            await seekPlayback(20000);  // 20 seconds forward
-            break;
-            
-        case 'ArrowLeft':
-            e.preventDefault();
-            await seekPlayback(-20000);  // 20 seconds backward
-            break;
-            
-        // ... rest of existing cases ...
-    }
-});
-
 
 async function togglePlaylist(cell) {
     const songId = cell.dataset.songId;
@@ -425,7 +416,10 @@ async function togglePlaylist(cell) {
     try {
         // Special handling for liked songs
         if (playlistId === 'liked_songs') {
-            const response = await fetch('/api/unlike_song', {
+            const endpoint = cell.classList.contains('in-playlist') ? 
+                '/api/unlike_song' : '/api/like_song';
+                
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -436,18 +430,15 @@ async function togglePlaylist(cell) {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to unlike song');
+                throw new Error('Failed to update liked status');
             }
             
-            // Just toggle visual state instead of removing
+            // Toggle visual state
             cell.classList.toggle('in-playlist');
             cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
             return;
         }
         
-        // Rest of the function stays the same...
-
-
         // Normal playlist handling...
         const response = await fetch('/api/toggle_playlist', {
             method: 'POST',
