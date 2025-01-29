@@ -10,7 +10,6 @@ A web application to efficiently manage your Spotify liked songs across multiple
 - Easily add/remove songs to/from multiple playlists
 - Control song playback directly from the interface
 - Dark/Light mode
-- Already played songs are marked
 - Keyboard navigation for power users
 
 ## Prerequisites
@@ -71,8 +70,12 @@ python app.py
 
 3. Open your browser and navigate to `http://localhost:8888`
 
-4. Click on cells to toggle playlist membership, click on play to trigger playback, click again to stop playback. Keyboard shortcuts: ↑/↓: Navigate through songs, Space: Play/stop selected song, 1-9: Quick-toggle playlists, Esc: Stop playback, ←/→: Skip 20s backward/forward
-
+- Click on cells to toggle playlist membership, click on play to trigger playback, click again to stop playback. 
+- Keyboard shortcuts: ↑/↓: Navigate through songs, Space: Play/stop selected song, 1-9: Quick-toggle playlists, Esc: Stop playback, ←/→: Skip 20s backward/forward
+- Click on the sun/moon to toggle theme
+- Playlist memberships (cells) are updated on spotify instantly. No refresh necessary. 
+- Click Refresh to: remove unliked songs from table, add new liked songs from spotify, remove deleted playlists, add new playlists. Basically everything that changes the rows or columns. This can take 10-20 seconds. 
+- Songs already played in this app are marked by color. To reset markers, delete spotify_cache.db and rerun read_from_spotify.py
 
 ## Project Structure
 
