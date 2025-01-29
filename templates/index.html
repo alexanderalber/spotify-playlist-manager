@@ -469,6 +469,7 @@ async function togglePlaylist(cell) {
 // Global variable to store the interval ID
 let playbackUpdateInterval = null;
 
+
 // Format milliseconds to MM:SS
 function formatTime(ms) {
     const totalSeconds = Math.floor(ms / 1000);
@@ -476,6 +477,7 @@ function formatTime(ms) {
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
+
 
 // Update the play button text with current playback status
 async function updatePlaybackStatus() {
@@ -495,7 +497,7 @@ async function updatePlaybackStatus() {
     }
 }
 
-// Modify the existing playSong function
+
 async function playSong(songId) {
     try {
         // If clicking the same song that's playing, stop it
@@ -581,6 +583,7 @@ async function playSong(songId) {
         }
         
         document.getElementById(`song-row-${songId}`).classList.add('played');
+        selectRow(songId);
 
     } catch (error) {
         console.error('Error playing song:', error);
