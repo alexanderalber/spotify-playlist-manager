@@ -227,7 +227,16 @@ def play_song():
 def stop_playback():
     """Stop current playback."""
     spotify = get_spotify()
-    spotify.pause_playback()
+    try:
+        # Only try to stop if something is actually playing
+        playback = spotify.current_playback()
+        if playback and playback['is_playing']:
+            spotify.pause_playback()
+    except Exception as e:
+        print(f"Error stopping playback: {e}")
+        # Don't error out - the UI can handle it
+        pass
+    
     return jsonify({'status': 'success'})
 
 @app.route('/api/mark_played', methods=['POST'])

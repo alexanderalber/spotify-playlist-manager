@@ -37,13 +37,16 @@ export const PlaybackManager = {
     },
 
     async stopPlayback() {
-        await Utils.apiCall('/api/stop', 'POST');
-        if (this.currentlyPlaying) {
-            const playButton = document.querySelector(`#song-row-${this.currentlyPlaying} .play-button`);
-            playButton.textContent = '▶';
+        try {
+            await Utils.apiCall('/api/stop', 'POST').catch(err => console.log('Stop playback failed:', err));
+        } finally {
+            if (this.currentlyPlaying) {
+                const playButton = document.querySelector(`#song-row-${this.currentlyPlaying} .play-button`);
+                playButton.textContent = '▶';
+            }
+            this.updatePlaybackState(null);
+            this.stopPlaybackUpdates();
         }
-        this.updatePlaybackState(null);
-        this.stopPlaybackUpdates();
     },
 
     updatePlaybackState(songId) {
