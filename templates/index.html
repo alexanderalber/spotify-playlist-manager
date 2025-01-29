@@ -417,6 +417,66 @@ document.addEventListener('keydown', async (e) => {
     }
 });
 
+
+async function togglePlaylist(cell) {
+    const songId = cell.dataset.songId;
+    const playlistId = cell.dataset.playlistId;
+    
+    try {
+        // Special handling for liked songs
+        if (playlistId === 'liked_songs') {
+            const response = await fetch('/api/unlike_song', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    song_id: songId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to unlike song');
+            }
+            
+            // Just toggle visual state instead of removing
+            cell.classList.toggle('in-playlist');
+            cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
+            return;
+        }
+        
+        // Rest of the function stays the same...
+
+
+        // Normal playlist handling...
+        const response = await fetch('/api/toggle_playlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                song_id: songId,
+                playlist_id: playlistId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to toggle playlist');
+        }
+        
+        // Toggle visual state
+        cell.classList.toggle('in-playlist');
+        cell.textContent = cell.classList.contains('in-playlist') ? '✓' : '+';
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update playlist. Please try again.');
+    }
+}
+
+
+
+
     </script>
 </body>
 </html>

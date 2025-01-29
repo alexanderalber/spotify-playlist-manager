@@ -11,11 +11,13 @@ import envvars
 app = Flask(__name__)
 app.secret_key = os.urandom(24) 
 
+
+
 auth_manager = SpotifyOAuth(
     client_id=envvars.client_id,
     client_secret=envvars.client_secret,
     redirect_uri="http://localhost:8888/callback",
-    scope="user-library-read playlist-read-private playlist-modify-public playlist-modify-private streaming user-read-playback-state user-modify-playback-state",
+    scope="user-library-read user-library-modify playlist-read-private playlist-modify-public playlist-modify-private streaming user-read-playback-state user-modify-playback-state",
     cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
 )
 
@@ -103,11 +105,23 @@ def index():
         played_songs_set = {s['song_id'] for s in played_songs}
 
 
+        liked_songs_playlist = {
+        'id': 'liked_songs',  # special ID for liked songs
+        'name': '❤️ Liked Songs'
+        }
+        owned_playlists.insert(0, liked_songs_playlist)
+
+
+        def song_in_playlist(song_id, playlist_id, memberships_set):
+            if playlist_id == 'liked_songs':
+                return True  # alle songs in der liste sind liked
+            return (song_id, playlist_id) in memberships_set
+
         return render_template(
             'index.html',
             songs=songs_list,
             playlists=owned_playlists,
-            song_in_playlist=lambda s, p: (s, p) in memberships_set,
+            song_in_playlist=lambda s, p: song_in_playlist(s, p, memberships_set),
             song_was_played=lambda s: s in played_songs_set,
             spotify_token=token
         )
@@ -344,6 +358,31 @@ def seek_playback():
 
 
 
+@app.route('/api/unlike_song', methods=['POST'])
+def unlike_song():
+    """Remove a song from liked songs."""
+    if not session.get('token_info'):
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        spotify = get_spotify()
+        data = request.json
+        song_id = data['song_id']
+        
+        # Remove from Spotify liked songs
+        spotify.current_user_saved_tracks_delete([song_id])
+        
+        # REMOVED: No longer delete from DB - will be cleaned up on next refresh
+        # conn = get_db_connection()
+        # conn.execute('DELETE FROM liked_songs WHERE id = ?', (song_id,))
+        # conn.commit()
+        # conn.close()
+        
+        return jsonify({'status': 'success'})
+        
+    except Exception as e:
+        print(f"Error in unlike_song: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=8888)
