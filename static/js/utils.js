@@ -23,5 +23,29 @@ export const Utils = {
             console.error(`Error in API call to ${endpoint}:`, error);
             throw error;
         }
+    },
+    
+    async refreshData() {
+        try {
+            // Update button to show loading state
+            const button = document.getElementById('refresh-button');
+            const originalText = button.textContent;
+            button.textContent = 'Refreshing...';
+            button.disabled = true;
+            
+            // Call the refresh API endpoint
+            await this.apiCall('/api/refresh', 'POST');
+            
+            // Reload the page to see the updated data
+            window.location.reload();
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            alert('Failed to refresh data from Spotify. Please try again.');
+            
+            // Reset button state
+            const button = document.getElementById('refresh-button');
+            button.textContent = 'Refresh Data';
+            button.disabled = false;
+        }
     }
 };

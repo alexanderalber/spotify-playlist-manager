@@ -118,7 +118,7 @@
             
             // Setup event listeners
             document.getElementById('refresh-button')
-                .addEventListener('click', () => location.reload());
+                .addEventListener('click', () => Utils.refreshData());
             
             document.getElementById('theme-toggle')
                 .addEventListener('click', () => UIManager.toggleTheme());

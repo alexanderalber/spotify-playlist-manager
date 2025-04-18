@@ -293,7 +293,7 @@ def main():
     CLIENT_SECRET = envvars.client_secret
     REDIRECT_URI = "http://localhost:8888/callback"
     
-    analyzer = SpotifyAnalyzer(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+    analyzer = SpotifyAnalyzer(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URI)
     
     print("Starting initial data load...")
     analyzer.fetch_all_liked_songs()

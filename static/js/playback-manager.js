@@ -32,7 +32,12 @@ export const PlaybackManager = {
         await this.markAsPlayed(songId);
         
         this.updateSongId = songId;
-        this.startPlaybackUpdates();
+        
+        // Give Spotify a moment to start playback before checking status
+        setTimeout(() => {
+            this.startPlaybackUpdates();
+        }, 1000);
+        
         NavigationManager.selectRow(songId);
     },
 
@@ -97,12 +102,27 @@ export const PlaybackManager = {
                 const progressText = `(${Utils.formatTime(data.progress_ms)}/${Utils.formatTime(data.duration_ms)})`;
                 playButton.innerHTML = `<div class="flex justify-center items-center w-full h-full"><span class="text-xs text-gray-800 dark:text-white">${progressText}</span></div>`;
                 
+                // Only stop if we've reached the end of the song
                 if (data.progress_ms >= data.duration_ms) {
                     this.stopPlayback();
                 }
             } else {
+                // Don't automatically stop playback - Spotify might still be starting playback
+                // Only update the UI to show the play button
                 playButton.textContent = '▶';
-                this.stopPlayback();
+                
+                // Check if playback has been stopped by user in Spotify app
+                // Only stop our tracking after multiple consecutive "not playing" responses
+                if (!this._notPlayingCount) {
+                    this._notPlayingCount = 1;
+                } else {
+                    this._notPlayingCount++;
+                    // After 3 consecutive "not playing" responses, assume playback has stopped
+                    if (this._notPlayingCount > 3) {
+                        this.stopPlayback();
+                        this._notPlayingCount = 0;
+                    }
+                }
             }
         } catch (error) {
             console.error('Error updating playback status:', error);
